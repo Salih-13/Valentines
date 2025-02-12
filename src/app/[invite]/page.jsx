@@ -138,7 +138,7 @@ export default function InvitePage() {
         </div>
       )}
       {videoVisible && (
-        <div className="absolute bottom-[180px] w-50px">
+        <div className="absolute bottom-[120px] w-50px">
           <video 
             className="w-[200px] h-[200px]"
             autoPlay 
