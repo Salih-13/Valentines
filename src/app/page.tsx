@@ -1,25 +1,70 @@
 "use client";
 import { useState } from "react";
+import { fireEmojiConfetti } from "@/components/magicui/emoji-confetti";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [name, setName] = useState("");
   const [place, setPlace] = useState("");
+  const [generatedLink, setGeneratedLink] = useState("");
+  const { toast } = useToast();
 
-  const generateLink = () => {
-    if (!name || !place) return alert("Please fill in both fields");
+  const generateLink = async () => {
+    if (!name || !place) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in both name and location",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const inviteLink = `${window.location.origin}/invite?name=${encodeURIComponent(name)}&place=${encodeURIComponent(place)}`;
+    setGeneratedLink(inviteLink);
+    fireEmojiConfetti();
 
     if (navigator.share) {
-      navigator
-        .share({
+      try {
+        await navigator.share({
           title: "Valentine's Invite",
           text: `I've got a question for you! Click the link:`,
           url: inviteLink,
-        })
-        .catch(console.error);
-    } else {
-      prompt("Copy this link and send it:", inviteLink);
+        });
+        toast({
+          title: "Link shared!",
+          description: "Your invite has been shared successfully",
+        });
+      } catch (error) {
+        // Only show error if it's not a user cancellation
+        if (error instanceof Error && error.name !== "AbortError") {
+          toast({
+            title: "Sharing failed",
+            description: "You can use the copy button instead",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      toast({
+        title: "Link copied!",
+        description: "You can now share it with your valentine!",
+        duration: 2000,
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please try again",
+        variant: "destructive",
+      });
     }
   };
 
@@ -45,26 +90,49 @@ export default function Home() {
           Ask Them Out !!🫂
         </h1>
         <div className="w-full max-w-md px-4">
-          <input
+          <Input
             type="text"
             placeholder="Crush's Name"
-            className="w-full mb-4 p-3 border rounded-lg font-bold text-black bg-white/90"
+            className="mb-4 p-3 border rounded-lg font-bold text-black bg-white/90"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <input
+          <Input
             type="text"
             placeholder="Date Location"
-            className="w-full mb-6 p-3 border rounded-lg font-bold text-black bg-white/90"
+            className="mb-6 p-3 border rounded-lg font-bold text-black bg-white/90"
             value={place}
             onChange={(e) => setPlace(e.target.value)}
           />
-          <button
+          <Button
             onClick={generateLink}
             className="w-full py-3 bg-pink-500 text-white rounded-lg shadow-lg hover:bg-pink-700 transition-colors font-pangolin text-lg"
           >
             Generate & Share
-          </button>
+          </Button>
+
+          {generatedLink && (
+            <Card className="mt-6 p-4 bg-white/90 backdrop-blur-sm">
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-gray-700">Your invite link:</p>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={generatedLink}
+                    className="bg-white/50"
+                  />
+                  <Button
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>
