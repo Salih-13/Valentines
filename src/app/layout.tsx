@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Pangolin } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const pangolin = Pangolin({
   weight: '400',
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${pangolin.variable}`}>
         {children}
+        <Toaster />
       </body>
     </html>
   );
